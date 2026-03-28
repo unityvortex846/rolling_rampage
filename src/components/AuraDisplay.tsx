@@ -1,0 +1,78 @@
+import { motion, AnimatePresence } from 'framer-motion'
+import { useEffect, useState } from 'react'
+import type { AuraDefinition, Rarity } from '../types'
+import { AuraEffect } from './AuraEffect'
+
+interface Props {
+  aura: AuraDefinition | null
+  rarity: Rarity | null
+  onDismiss: () => void
+}
+
+export function AuraDisplay({ aura, rarity, onDismiss }: Props) {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    if (aura && rarity) {
+      setVisible(true)
+      const timer = setTimeout(() => {
+        setVisible(false)
+        onDismiss()
+      }, 3500)
+      return () => clearTimeout(timer)
+    }
+  }, [aura, rarity, onDismiss])
+
+  return (
+    <AnimatePresence>
+      {visible && aura && rarity && (
+        <motion.div
+          key={`${aura.id}-${Date.now()}`}
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center cursor-pointer"
+          style={{ background: 'rgba(0,0,0,0.75)' }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={() => { setVisible(false); onDismiss() }}
+        >
+          {/* Aura visual */}
+          <motion.div
+            initial={{ scale: 0.3, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 1.2, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 18 }}
+            className="flex flex-col items-center gap-6"
+          >
+            <AuraEffect rarity={rarity} size={140} />
+
+            {/* Info card */}
+            <motion.div
+              className="text-center px-8 py-4 rounded-2xl border"
+              style={{
+                background: 'rgba(0,0,0,0.6)',
+                borderColor: rarity.color,
+                boxShadow: `0 0 20px ${rarity.glowColor}`,
+              }}
+              initial={{ y: 30, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              <span
+                className={`inline-block text-xs font-bold uppercase tracking-widest px-3 py-1 rounded-full mb-2 ${rarity.bgClass} ${rarity.textClass}`}
+              >
+                {rarity.label}
+              </span>
+              <h2 className="text-3xl font-bold text-white mb-1">{aura.name}</h2>
+              <p className="text-gray-300 text-sm mb-3">{aura.description}</p>
+              <p className={`text-lg font-semibold ${rarity.textClass}`}>
+                +{rarity.chance.toLocaleString()} Stats
+              </p>
+            </motion.div>
+
+            <p className="text-gray-500 text-sm">Click anywhere to dismiss</p>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  )
+}
