@@ -53,4 +53,18 @@ export const GAUNTLETS: GauntletDef[] = [
       description: '+200% luck (while equipped)',
     },
   },
+  {
+    id: 'gauntlet-of-purity',
+    name: 'Gauntlet of Purity',
+    requiredAuras: [
+      { auraId: 'odd',        count: 1 },
+      { auraId: 'reign',      count: 1 },
+      { auraId: 'primordial', count: 1 },
+    ],
+    reward: {
+      luckBonus: 250,
+      speedBonus: 30,
+      description: '+250% luck + 30% roll speed (while equipped)',
+    },
+  },
 ]
