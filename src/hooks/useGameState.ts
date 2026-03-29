@@ -8,6 +8,8 @@ import {
 } from '../utils/roll'
 import { BEGINNER_POTION } from '../data/potions'
 import { GAUNTLETS } from '../data/gauntlets'
+import { BREW_RECIPES } from '../data/brewer'
+import { AURA_MAP } from '../data/auras'
 import { saveStateKey } from './useAuth'
 
 function createInitialState(): GameState {
@@ -253,6 +255,61 @@ export function useGameState(username: string) {
     [username]
   )
 
+  // ─── Brewer ──────────────────────────────────────────────────────────────
+  const brewPotion = useCallback(
+    (recipeId: string) => {
+      setState((prev) => {
+        const recipe = BREW_RECIPES.find((r) => r.id === recipeId)
+        if (!recipe) return prev
+
+        // Count inventory
+        const counts = prev.inventory.reduce<Record<string, number>>(
+          (acc, owned) => {
+            acc[owned.definitionId] = (acc[owned.definitionId] ?? 0) + 1
+            return acc
+          },
+          {}
+        )
+
+        // Check ingredients are available
+        const canBrew = recipe.ingredients.every(
+          (ing) => (counts[ing.auraId] ?? 0) >= ing.count
+        )
+        if (!canBrew) return prev
+
+        // Remove ingredient auras from inventory (consume the required amounts)
+        let newInventory = [...prev.inventory]
+        let statLost = 0
+        for (const ing of recipe.ingredients) {
+          let toRemove = ing.count
+          newInventory = newInventory.filter((owned) => {
+            if (owned.definitionId === ing.auraId && toRemove > 0) {
+              toRemove--
+              statLost += AURA_MAP[owned.definitionId]?.chance ?? 0
+              return false
+            }
+            return true
+          })
+        }
+
+        const brewed = {
+          ...recipe.resultPotion,
+          id: `${recipe.resultPotion.id}-${Date.now()}`,
+        }
+
+        const next: GameState = {
+          ...prev,
+          inventory: newInventory,
+          totalStats: Math.max(0, prev.totalStats - statLost),
+          potionInventory: [...prev.potionInventory, brewed],
+        }
+        saveState(username, next)
+        return next
+      })
+    },
+    [username]
+  )
+
   // ─── Reset ───────────────────────────────────────────────────────────────
   const resetGame = useCallback(() => {
     const fresh = createInitialState()
@@ -291,5 +348,6 @@ export function useGameState(username: string) {
     resetGame,
     getInventoryCounts,
     canCraftGauntlet,
+    brewPotion,
   }
 }

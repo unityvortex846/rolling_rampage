@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { useMemo } from 'react'
 import type { AuraDefinition } from '../types'
+import { getAuraCategory } from '../utils/roll'
 
 interface Props {
   aura: AuraDefinition
@@ -451,6 +452,27 @@ function OddEffect({ aura, size }: { aura: AuraDefinition; size: number }) {
 
 // ─── Generic effect for all other auras ──────────────────────────────────
 function GenericEffect({ aura, size }: { aura: AuraDefinition; size: number }) {
+  const category = getAuraCategory(aura.chance)
+
+  // Tier-based particle overrides
+  const particleColor = (() => {
+    switch (category) {
+      case 'Basics':    return 'rgba(255,255,255,0.6)'
+      case 'Mortal':    return 'rgba(180,180,180,0.7)'
+      case 'Legendary': return '#4ade80'
+      case 'Charming':  return '#38bdf8'
+      default:          return aura.color
+    }
+  })()
+
+  const particleSize = (() => {
+    switch (category) {
+      case 'Basics': return 2
+      case 'Mortal': return 3
+      default:       return undefined // use dynamic size below
+    }
+  })()
+
   const particles = useMemo(() => {
     return Array.from({ length: aura.particleCount }, (_, i) => ({
       id: i,
@@ -461,6 +483,10 @@ function GenericEffect({ aura, size }: { aura: AuraDefinition; size: number }) {
       sz: 3 + Math.floor(Math.random() * 3),
     }))
   }, [aura])
+
+  // Charming+ gets a blue orbital ring
+  const showRing = category === 'Charming' || category === 'Exalted' ||
+    category === 'Rune' || category === 'Ethereum' || category === 'Special'
 
   return (
     <div
@@ -477,24 +503,40 @@ function GenericEffect({ aura, size }: { aura: AuraDefinition; size: number }) {
         animate={{ scale: [1, 1.08, 1], opacity: [0.6, 1, 0.6] }}
         transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
       />
+      {/* Blue orbital ring for Charming+ tiers */}
+      {showRing && (
+        <motion.div
+          className="absolute rounded-full"
+          style={{
+            width: size + aura.glowSize * 0.8,
+            height: size + aura.glowSize * 0.8,
+            border: `2px solid ${aura.color}`,
+            boxShadow: `0 0 12px ${aura.glowColor}, inset 0 0 8px ${aura.glowColor}`,
+            opacity: 0.6,
+          }}
+          animate={{ scale: [1, 1.06, 1], opacity: [0.4, 0.7, 0.4] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+        />
+      )}
       {particles.map((p) => {
         const rad = (p.angle * Math.PI) / 180
         const x = Math.cos(rad) * p.dist
         const y = Math.sin(rad) * p.dist
+        const sz = particleSize ?? p.sz
         return (
           <motion.div
             key={p.id}
             className="absolute rounded-full"
             style={{
-              width: p.sz, height: p.sz,
-              backgroundColor: aura.color,
+              width: sz, height: sz,
+              backgroundColor: particleColor,
               left: '50%', top: '50%',
-              marginLeft: -p.sz / 2, marginTop: -p.sz / 2,
+              marginLeft: -sz / 2, marginTop: -sz / 2,
             }}
             animate={{
               x: [x * 0.7, x, x * 0.85, x * 0.7],
               y: [y * 0.7, y, y * 0.85, y * 0.7],
-              opacity: [0.4, 1, 0.6, 0.4],
+              opacity: category === 'Basics' ? [0.2, 0.5, 0.2, 0.2] : [0.4, 1, 0.6, 0.4],
               scale: [0.8, 1.2, 0.9, 0.8],
             }}
             transition={{ duration: p.dur, repeat: Infinity, delay: p.delay, ease: 'easeInOut' }}

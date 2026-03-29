@@ -4,7 +4,6 @@ import { useAuth } from './hooks/useAuth'
 import { useAutoRoll } from './hooks/useAutoRoll'
 import { LoginScreen } from './components/LoginScreen'
 import { TutorialModal } from './components/TutorialModal'
-import { RollButton } from './components/RollButton'
 import { AuraDisplay } from './components/AuraDisplay'
 import { StatsPanel } from './components/StatsPanel'
 import { Inventory } from './components/Inventory'
@@ -12,10 +11,13 @@ import { PotionPanel } from './components/PotionPanel'
 import { GauntletPanel } from './components/GauntletPanel'
 import { AuraIndex } from './components/AuraIndex'
 import { AutoRollPanel } from './components/AutoRollPanel'
+import { BrewerPanel } from './components/BrewerPanel'
+import { GameWorld } from './components/GameWorld'
 import { getEffectiveLuck } from './utils/roll'
 import { AURA_MAP } from './data/auras'
+import { GAUNTLETS } from './data/gauntlets'
 
-type Tab = 'inventory' | 'potions' | 'gauntlets' | 'index' | 'auto-roll'
+type Tab = 'inventory' | 'potions' | 'gauntlets' | 'index' | 'auto-roll' | 'brewer'
 
 function Game({ username }: { username: string }) {
   const {
@@ -32,6 +34,7 @@ function Game({ username }: { username: string }) {
     resetGame,
     getInventoryCounts,
     canCraftGauntlet,
+    brewPotion,
   } = useGameState(username)
 
   const { logout } = useAuth()
@@ -59,6 +62,7 @@ function Game({ username }: { username: string }) {
     { id: 'inventory', label: 'Inventory', badge: state.inventory.length },
     { id: 'potions', label: 'Potions', badge: state.potionInventory.length || undefined },
     { id: 'gauntlets', label: 'Gauntlets' },
+    { id: 'brewer', label: '⚗ Brewer' },
     { id: 'index', label: 'Aura Index', badge: state.discoveredAuras.length || undefined },
     { id: 'auto-roll', label: 'Auto Roll' },
   ]
@@ -105,9 +109,10 @@ function Game({ username }: { username: string }) {
         <div className="bg-purple-950 border-b border-purple-800 px-5 py-2 flex items-center gap-2 flex-wrap">
           <span className="text-purple-400 text-xs font-bold uppercase tracking-wider">Equipped:</span>
           {state.equippedGauntlets.map((id) => {
-            const g = { 'gauntlet-of-sparks': 'Sparks', 'gauntlet-of-storms': 'Storms', 'gauntlet-of-the-abyss': 'Abyss', 'gauntlet-of-hellfire': 'Hellfire' }[id] ?? id
+            const g = GAUNTLETS.find((gauntlet) => gauntlet.id === id)
+            const label = g ? g.name.replace('Gauntlet of ', '') : id
             return (
-              <span key={id} className="text-xs bg-purple-800 text-purple-200 px-2 py-0.5 rounded-full">{g}</span>
+              <span key={id} className="text-xs bg-purple-800 text-purple-200 px-2 py-0.5 rounded-full">{label}</span>
             )
           })}
         </div>
@@ -115,19 +120,13 @@ function Game({ username }: { username: string }) {
 
       {/* Main content */}
       <main className="max-w-2xl mx-auto px-4 py-6 flex flex-col gap-6">
-        {/* Roll section */}
-        <section className="flex flex-col items-center gap-3">
-          <RollButton
-            onRoll={handleRoll}
-            onQuickRoll={quickRoll}
-            effectiveLuck={effectiveLuck}
-          />
-          <p className="text-gray-600 text-sm">
-            {state.totalRolls === 0
-              ? 'Click to roll your first aura!'
-              : `${state.totalRolls.toLocaleString()} rolls so far`}
-          </p>
-        </section>
+        {/* Game world */}
+        <GameWorld
+          state={state}
+          onRoll={handleRoll}
+          onQuickRoll={quickRoll}
+          effectiveLuck={effectiveLuck}
+        />
 
         {/* Stats */}
         <StatsPanel state={state} />
@@ -168,6 +167,9 @@ function Game({ username }: { username: string }) {
               canCraft={canCraftGauntlet}
               inventoryCounts={inventoryCounts}
             />
+          )}
+          {activeTab === 'brewer' && (
+            <BrewerPanel state={state} onBrew={brewPotion} />
           )}
           {activeTab === 'index' && <AuraIndex state={state} />}
           {activeTab === 'auto-roll' && (

@@ -74,25 +74,25 @@ export function simulateRolls(
  * Derive the category/tier name for an aura based on its chance value.
  */
 export function getAuraCategory(chance: number): string {
-  if (chance >= 1_000_000) return 'Phantom'
-  if (chance >= 600_000)   return 'Divine'
-  if (chance >= 200_000)   return 'Mythic'
-  if (chance >= 50_000)    return 'Legendary'
-  if (chance >= 10_000)    return 'Epic'
-  if (chance >= 1_000)     return 'Rare'
-  if (chance >= 100)       return 'Uncommon'
-  return 'Common'
+  if (chance >= 1_000_000_000_000) return 'Special'
+  if (chance >= 1_000_000_000)     return 'Ethereum'
+  if (chance >= 100_000_000)       return 'Rune'
+  if (chance >= 10_000_000)        return 'Exalted'
+  if (chance >= 1_000_000)         return 'Charming'
+  if (chance >= 10_000)            return 'Legendary'
+  if (chance >= 1_000)             return 'Mortal'
+  return 'Basics'
 }
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  Common:    '#9ca3af',
-  Uncommon:  '#4ade80',
-  Rare:      '#38bdf8',
-  Epic:      '#c084fc',
+  Basics:    '#9ca3af',
+  Mortal:    '#4ade80',
   Legendary: '#fbbf24',
-  Mythic:    '#e879f9',
-  Divine:    '#f9a8d4',
-  Phantom:   '#67e8f9',
+  Charming:  '#38bdf8',
+  Exalted:   '#e879f9',
+  Rune:      '#f97316',
+  Ethereum:  '#67e8f9',
+  Special:   '#ffffff',
 }
 
 /**

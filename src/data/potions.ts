@@ -9,6 +9,25 @@ export const BEGINNER_POTION: Potion = {
   type: 'luck',
 }
 
+// ─── Brewer-only potions (not available in shop, crafted via Brewer tab) ────
+export const LOVE_POTION: Potion = {
+  id: 'love-potion',
+  name: 'Love Potion',
+  description: 'Grants 50× luck for 100 rolls.',
+  luckMultiplier: 50,
+  rollsRemaining: 100,
+  type: 'luck',
+}
+
+export const STARLIGHT_POTION: Potion = {
+  id: 'starlight-potion',
+  name: 'Starlight Potion',
+  description: 'Grants 1,000× luck for 1 roll.',
+  luckMultiplier: 1000,
+  rollsRemaining: 1,
+  type: 'luck',
+}
+
 export const ALL_POTIONS: Potion[] = [
   BEGINNER_POTION,
   {
