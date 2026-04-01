@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p src/games)",
+      "Bash(cp -r ../rolling_rampage/src src/games/rolling-rampage)"
+    ]
+  }
+}
